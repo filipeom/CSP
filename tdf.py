@@ -101,7 +101,7 @@ def evaluation(ik, X, n, r):
             x_j = x[j]
             if matrix[j][x_j] == "T":
                 continue
-            res *= matrix[j][x_j]
+            res = (res * matrix[j][x_j]) % p
 
         return res
 
@@ -142,6 +142,13 @@ def evaluation(ik, X, n, r):
 
 
 def inversion(tk, Y):
+    def HC(x):
+        binary = [int(i) for i in bin(x)[2:]]
+        res = 0
+        for i in binary:
+            res ^= i
+
+        return res
 
     pp, rho = tk
     y, perm = Y
@@ -150,21 +157,28 @@ def inversion(tk, Y):
     b = []
 
     for i in range(n):
-        
         rho_i0 = rho[i][0]
         rho_i1 = rho[i][1]
-
-
+        e_i0 = []
+        e_i1 = []
+        for j in range(len(rho_i0)):
+            e_i0.append(HC(pow(y, rho_i0[j], p)))
+            e_i1.append(HC(pow(y, rho_i1[j], p)))
+        e = []
+        e.append(e_i0)
+        e.append(e_i1)
+        print(perm[i][0] == e_i0)
+        print(perm[i][1] == e_i1)
 
 
 #security parameters
 
-bits = 5
+bits = 10
 r = 10
 
 p = getPrime(bits)
 g = getGenerator(p)
-x = [0,1,0]
+x = [0,0,0,1,1,1]
 n = len(x)
 b = []
 
