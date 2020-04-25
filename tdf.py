@@ -16,26 +16,24 @@ def keyGeneration(p, g, n, r):
     
     #p prime, g generator of Zp, n size input
     def getPP(p, g, n):
-    
-        pp = [ [0 for _ in range(n)] for _ in range(2)]
 
-        for i in range(2):
-            for j in range(n):
+        pp = [ [0 for _ in range(2)] for _ in range(n)]
+
+        for j in range(n):
+            for i in range(2):
                 random = getRandomRange(2, p - 1)
-                pp[i][j] = pow(g, random, p)
-
+                pp[j][i] = pow(g, random, p)
+    
         return pp
 
     def matrixExponentiation(matrix, exp, i, b):
 
-        for row in range(2):
-            
-            for col in range(n):
-    
-                if row == i and col == b:
+        for col in range(n):
+            for row in range(2):
+                if col == i and row == b:
                     matrix[i][b] = "T"
                 else:
-                    matrix[row][col] = pow(pp[row][col], exp)
+                    matrix[col][row] = pow(pp[col][row], exp)
 
         return matrix
 
@@ -43,18 +41,16 @@ def keyGeneration(p, g, n, r):
 
     rho = []
     ct  = []
-    M   = []
 
     for i in range(n):
-
+        ct_ib  = []
 
         for b in range(2):
             rho_ib = []
             M_ib   = []
-            ct_ib  = []
             
             for _ in range(r):
-                randomNumber = getRandomRange(2, 100)
+                randomNumber = getRandomRange(2, 4)
                 rho_ib.append(randomNumber)
 
             for j in range(r):
@@ -63,9 +59,8 @@ def keyGeneration(p, g, n, r):
                 M_ib.append(M_ib_j)
             
             ct_ib.append(M_ib)
-    
+
         rho.append(rho_ib)
-        M.append(M_ib)
         ct.append(ct_ib)
 
     ik = [pp, ct]
@@ -74,23 +69,49 @@ def keyGeneration(p, g, n, r):
     return ik, tk, pp
 
 
+def evaluation(ik, X, n, r):
 
-def evaluation(ik, X, pp, n):
+    def HC(x):
+        binary = [int(i) for i in bin(x)[2:]]
+        res = 0
+        for i in binary:
+            res ^= i
+
+        return res
+
+    def multiplyMatrix(matrix, x, n):
+
+        res = 1
+        for j in range(n):
+            x_j = x[j]
+            if matrix[j][x_j] == "T":
+                continue
+            res *= matrix[j][x_j]
+
+        return res
+
     x, b = X
+    pp, ct = ik
 
     y = 1
-    for i in range(2):
-        for j in range(n):
-            y = y * pp[i][x[j]] % p
+    for j in range(n):
+        x_j = x[j]
+        y = (y * pp[j][x_j]) % p
 
+    e = []
+    for i in range(n):
+        e_i = []
+        for j in range(r):
+            x_i = x[i]
+            M_i_xi_r = ct[i][x_i][j]
+            e_i.append(HC(multiplyMatrix(M_i_xi_r, x, n)))
 
-    print ("y={}".format(y))
+    # permutations
 
 #security parameters
 
-bits = 10
-r = 6
-
+bits = 3
+r = 4
 
 p = getPrime(bits)
 g = getGenerator(p)
@@ -101,15 +122,10 @@ b = []
 for i in range(n):
     b.append(getRandomNBitInteger(r))
 
-
-
-
-
 print ("p={}".format(p))
 print ("g={}".format(g))
 print ("n={}".format(n))
 
 ik, tk, pp = keyGeneration(p, g, n, r)
 
-
-evaluation(ik, [x, b], pp, n)
+evaluation(ik, [x, b], n, r)
