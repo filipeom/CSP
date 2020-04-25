@@ -1,6 +1,7 @@
 from Crypto.Util.number import *
 import numpy as np
 from copy import deepcopy
+from random import randint
 
 
 # p must me a prime number
@@ -33,7 +34,7 @@ def keyGeneration(p, g, n, r):
                 if col == i and row == b:
                     matrix[i][b] = "T"
                 else:
-                    matrix[col][row] = pow(pp[col][row], exp)
+                    matrix[col][row] = pow(pp[col][row], exp, p)
 
         return matrix
 
@@ -43,28 +44,42 @@ def keyGeneration(p, g, n, r):
     ct  = []
 
     for i in range(n):
-        ct_ib  = []
+        ct_i  = []
+        rho_i = []
 
         for b in range(2):
-            rho_ib = []
             M_ib   = []
+            rho_ib = []
             
             for _ in range(r):
-                randomNumber = getRandomRange(2, 4)
-                rho_ib.append(randomNumber)
+                rho_ib.append(getRandomRange(2, 4))
 
             for j in range(r):
                 # pp remains intact
                 M_ib_j = matrixExponentiation(deepcopy(pp), rho_ib[j], i, b)
                 M_ib.append(M_ib_j)
             
-            ct_ib.append(M_ib)
+            ct_i.append(M_ib)
+            rho_i.append(rho_ib)
 
-        rho.append(rho_ib)
-        ct.append(ct_ib)
+        rho.append(rho_i)
+        ct.append(ct_i)
 
     ik = [pp, ct]
-    tk = [rho]
+    tk = [pp, rho]
+
+    # ro = [ro1, ro2, ..., ron]
+    # ro1 = [ro10, ro11]
+    # ro10 = [ro10, ..., ro10_r]
+
+    # ct = [c1, c2, ..., cn]
+
+    # c1 = [c10, c11]
+    # c2 = [c20, c21]
+    # cn = [cn0, cn1]
+    
+    # c10 = [M10, M20, ... Mn0]
+    # c11 = [M11, M21, ... Mn1]
 
     return ik, tk, pp
 
@@ -90,6 +105,12 @@ def evaluation(ik, X, n, r):
 
         return res
 
+    def Perm(u1, u2, xi):
+        if xi == 0:
+            return [u1, u2]
+        else:
+            return [u2, u1]
+
     x, b = X
     pp, ct = ik
 
@@ -98,6 +119,7 @@ def evaluation(ik, X, n, r):
         x_j = x[j]
         y = (y * pp[j][x_j]) % p
 
+    print ("y={}".format(y))
     e = []
     for i in range(n):
         e_i = []
@@ -105,22 +127,51 @@ def evaluation(ik, X, n, r):
             x_i = x[i]
             M_i_xi_r = ct[i][x_i][j]
             e_i.append(HC(multiplyMatrix(M_i_xi_r, x, n)))
+        e.append(e_i)
+
+    Y = []
+    Y.append(y)
+    Y.append([])
 
     # permutations
+    for i in range(len(e)):
+        # print ("{} {} {} -> {}".format(e[i], b[i], x[i], Perm(e[i], b[i], x[i])))
+        Y[1].append(Perm(e[i], b[i], x[i]))
+
+    return Y
+
+
+def inversion(tk, Y):
+
+    pp, rho = tk
+    y, perm = Y
+
+    x = []
+    b = []
+
+    for i in range(n):
+        
+        rho_i0 = rho[i][0]
+        rho_i1 = rho[i][1]
+
+
+
 
 #security parameters
 
-bits = 3
-r = 4
+bits = 5
+r = 10
 
 p = getPrime(bits)
 g = getGenerator(p)
-n = 10
-x = [0,1,1,1,1,1,1,1,1,0]
-
+x = [0,1,0]
+n = len(x)
 b = []
+
 for i in range(n):
-    b.append(getRandomNBitInteger(r))
+    b.append([])
+    for _ in range(r):
+        b[i].append(randint(0,1))
 
 print ("p={}".format(p))
 print ("g={}".format(g))
@@ -128,4 +179,6 @@ print ("n={}".format(n))
 
 ik, tk, pp = keyGeneration(p, g, n, r)
 
-evaluation(ik, [x, b], n, r)
+Y = evaluation(ik, [x, b], n, r)
+
+inversion(tk, Y)
