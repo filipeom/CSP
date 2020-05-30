@@ -24,6 +24,8 @@ def S(_lambda, n):
     A = sampleA(p, g, n)
     return (p, g, A)
 
+#f_i(x) = x[i]
+
 def G(hk, i):
 
     def sampleB(A, s, t, i, g, p):
@@ -90,7 +92,6 @@ def main():
     n = len(x)
     i = 1
 
-
     hk = S(8, n)
     p, g, A = hk
     ek, td = G(hk, i)
@@ -107,4 +108,4 @@ def main():
         print ("smth wrong")
     # print (x)
 
-main()
+# main()
