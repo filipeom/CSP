@@ -5,22 +5,79 @@ def getGenerator(p):
         if pow(g, (p-1)//2, p) in [-1, p - 1]:
             return g
 
-def sampleA(p, g, n):
-    A = []
-    for j in range(n):
-        A.append([])
-        for b in range(2 * n):
-           A[j].append(pow(g, getRandomRange(0, p - 1), p))
-    return A
+def sampleGroupElement(g, p):
+    return pow(g, getRandomRange(1, p - 1), p) 
 
-def sampleB(A, p, g, n, s, t, i):
-    B = []
+def S(_lambda, n):
+    
+    def sampleA(p, g, n):
+        A = []
+        for i in range(n):
+            gi0 = sampleGroupElement(g, p)
+            gi1 = sampleGroupElement(g, p)
+            A.append([gi0, gi1])
+        return A
+
+
+    p = getPrime(_lambda)
+    g = getGenerator(p)
+    A = sampleA(p, g, n)
+    return (p, g, A)
+
+def G(hk, i):
+
+    def sampleB(A, s, t, i, g, p):
+
+        B = []
+        n = len(A)
+        for j in range(n):
+            gj0 = A[j][0]
+            gj1 = A[j][1]
+
+            uj0 = pow(gj0, s, p)
+            uj1 = pow(gj1, s, p) * (pow(g, t, p) if j == i else 1)  
+
+            B.append([uj0, uj1])
+        return B
+
+    p, g, A = hk
+
+    s = sampleGroupElement(g, p)
+    t = sampleGroupElement(g, p)
+    u = pow(g, s, p)
+    B = sampleB(A, s, t, i, g, p)
+
+    ek = (u, B)
+    td = (s, t)
+    
+    return (ek, td)
+
+def H(hk, x, r):
+
+    p, g, A = hk
+    h = pow(g, r, p)
+    n = len(A)
     for j in range(n):
-        B.append([])
-        for b in range(2 * i, 2 * (i + 1)):
-            u_jb = (pow(A[j][b], s, p) * pow(g, t, p)) % p if j == i and b == (2 * i + 1) else pow(A[j][b], s, p)
-            B[j].append(u_jb)
-    return B
+        h = (h * A[j][x[j]]) % p
+
+    return h 
+
+def E(ek, x, r, p):
+
+    u, B = ek
+    e = pow(u, r, p)
+    n = len(B)
+    for j in range(n):
+        e = (e * B[j][x[j]]) % p
+    
+    return e
+
+def D(td, h, g, p):
+    s, t = td
+
+    e0 = pow(h, s, p)
+    e1 = (pow(h, s, p) * pow(g, t, p)) % p
+    return (e0, e1)
 
 def main():
     msg = "HELLO WORLD!"
@@ -32,55 +89,22 @@ def main():
             x.append(int(j))
     n = len(x)
     i = 1
-    # begin S
-    p = getPrime(16)
-    g = getGenerator(p)
-    A = sampleA(p, g, n)
-    # end S
-    # begin G
-    s = [getRandomRange(2, p - 1) for _ in range(n)]
-    t = [getRandomRange(2, p - 1) for _ in range(n)]
-    u = [pow(g, s_i, p) for s_i in s]
-    B = [sampleB(A, p, g, n, s[i], t[i], i) for i in range(n)]
-    # end G
-    # being H
-    r = [getRandomRange(2, p - 1) for _ in range(n)]
-    h = [pow(g, r[i], p) for i in range(n)]
-    for i in range(n):
-        for j in range(n):
-            x_j = x[j]
-            h[i] = (h[i] * A[j][2 * i + x_j]) % p
-    # end H
-    # begin E
-    e = [pow(u[i], r[i], p) for i in range(n)]
-    for i in range(n):
-        for j in range(n):
-            x_j = x[j]
-            e[i] = (e[i] * B[i][j][x_j]) % p
-    # end E
-    e_0 = [pow(h[i], s[i], p) for i in range(n)]
-    e_1 = [(e_0[i] * pow(g, t[i], p)) % p for i in range(n)]
 
-    msg = ""
-    cnt = 0
-    char = []
-    for i in range(n):
 
-        if e[i] == e_0[i]:
-            char.append(0)
-        elif e[i] == e_1[i]:
-            char.append(1)
-        else:
-            print ("Error")
-        
-        cnt += 1    
-
-        if cnt == 8:
-            msg += chr(int("".join(str(c) for c in char),2))
-            char = []
-            cnt = 0
-    
-    print ("Received message: {}".format(msg))
-
+    hk = S(8, n)
+    p, g, A = hk
+    ek, td = G(hk, i)
+    r = sampleGroupElement(g, p)
+    h = H(hk, x, r)
+    e = E(ek, x, r, p)
+    e0, e1 = D(td, h, g, p)
+    print (" e:{}\ne0:{}\ne1:{}".format(e, e0, e1))
+    if e0 == e:
+        print ("bit shared is 0")
+    elif e1 == e:
+        print ("bit shared is 1")
+    else:
+        print ("smth wrong")
+    # print (x)
 
 main()
