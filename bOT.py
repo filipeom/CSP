@@ -1,5 +1,8 @@
-from tdh_ddh import *
+# -- coding: utf-8 --
 import random
+import argparse
+
+from tdh_ddh import *
 
 def bOT1(_lambda, k,  inp):
     # inp
@@ -62,9 +65,15 @@ def bOT3(st, msg2):
     return s
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('sp', type=int, help='Security Parameter')
+    parser.add_argument('k',  type=int)
+    parser.add_argument('n',  type=int)
+    args = parser.parse_args()
 
-    k = 8
-    n = 16
+    sp = args.sp
+    k  = args.k
+    n  = args.n
 
     secrets = [[random.randint(0, 1) for i in range(k)] for i in range(n)]
 
@@ -73,7 +82,7 @@ def main():
     for i in secrets:
         print (i)
 
-    st, msg1 = bOT1(1024, k, inp)
+    st, msg1 = bOT1(sp, k, inp)
     msg2 = bOT2(msg1, secrets)
     s = bOT3(st, msg2)
 

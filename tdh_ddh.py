@@ -81,7 +81,8 @@ def D(td, h, g, p):
     e1 = (pow(h, s, p) * pow(g, t, p)) % p
     return (e0, e1)
 
-def main():
+# Debug function to test the implemented functions
+def debug():
     msg = "HELLO WORLD!"
     print ("Original message: {}".format(msg))
     msg = [bin(ord(i))[2:].rjust(8, "0") for i in msg]
@@ -106,6 +107,4 @@ def main():
         print ("bit shared is 1")
     else:
         print ("smth wrong")
-    # print (x)
-
-# main()
+    print (x)
