@@ -23,8 +23,6 @@ def bOT1(_lambda, k,  inp):
 
     return (st, msg1)
 
-# secrets     = [[...], [...], [...]]
-# new_secrets = [..., ..., ...]
 def bOT2(msg1, secrets):
 
     hk, ek = msg1[0], msg1[1:]
@@ -78,17 +76,21 @@ def main():
     secrets = [[random.randint(0, 1) for i in range(k)] for i in range(n)]
 
     inp = [random.randint(0, k-1) for _ in range(n)]
-    print ("SECRETS:")
-    for i in secrets:
-        print (i)
+    print ("Bob has secrets:")
+    i = 0
+    for si in secrets:
+        print ("s{} -> {}".format(i, si))
+        i += 1
 
     st, msg1 = bOT1(sp, k, inp)
     msg2 = bOT2(msg1, secrets)
     s = bOT3(st, msg2)
 
-    print ("inp:", inp)
-    print ("s:", s)
+    print ("Alice retrived:")
+    for i in range(len(s)):
+        print ("The {}th bit from s{}, which is: {}".format(inp[i]+1, i, s[i]))
 
+    # Verify correctness
     fail = False
     for i in range(n):
         if secrets[i][inp[i]] != s[i]:
