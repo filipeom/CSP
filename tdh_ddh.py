@@ -8,7 +8,21 @@ def getGenerator(p):
 def sampleGroupElement(g, p):
     return pow(g, getRandomRange(1, p - 1), p) 
 
+
 def S(_lambda, n):
+    '''Sampling algorithm
+
+    Agrs:
+        _lambda (int): security parameter, number of bits in p
+        n (int): input length
+
+    Returns:
+        public hashkey:
+            p (int): prime
+            g (int): generator
+            A (list): 
+
+    '''
     
     def sampleA(p, g, n):
         A = []
@@ -27,6 +41,16 @@ def S(_lambda, n):
 #f_i(x) = x[i]
 
 def G(hk, i):
+    '''Generating algorithm
+
+    Args:
+        hk: public hash key
+        i (int): index
+
+    Returns:
+        ek: encoding key
+        td: trapdoor
+    '''
 
     def sampleB(A, s, t, i, g, p):
 
@@ -55,6 +79,16 @@ def G(hk, i):
     return (ek, td)
 
 def H(hk, x, r):
+    '''Hashing algorithm
+
+    Args:
+        hk: Hash key
+        x (tuple): bitstring
+        r (int): randomness
+
+    Returns:
+        h (int): hash value
+    '''
 
     p, g, A = hk
     h = pow(g, r, p)
@@ -65,6 +99,17 @@ def H(hk, x, r):
     return h 
 
 def E(ek, x, r, p):
+    '''Encoding algorithm
+
+    Args:
+        ek: Encoding key
+        x (tuple): bitstring
+        r (int): randomness
+        p (int): prime
+
+    Returns:
+        e (int): encoding
+    '''
 
     u, B = ek
     e = pow(u, r, p)
@@ -75,6 +120,18 @@ def E(ek, x, r, p):
     return e
 
 def D(td, h, g, p):
+    '''Decoding algorithm
+
+    Args:
+        td: trapdoor
+        h (int): hash value
+        g (int): generator
+        p (int): prime
+
+    Returns:
+        e0 (int): zero-encoding
+        e1 (int): one-encoding
+    '''
     s, t = td
 
     e0 = pow(h, s, p)
